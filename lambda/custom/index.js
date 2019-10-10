@@ -56,7 +56,25 @@ const getCommandHandler = {
       sessionAttributes.speakOutput = command;
       handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
       const repromptText = "Would you like me to send that command?";
-      // finalCommand = command;
+      const speechText = "Ok, I will send you a message";
+    //Publishing a messagr - Load the AWS SDK for Node.js
+      // Set region
+      // Create publish parameters
+      var params = {
+        Message: command, /* required */
+        TopicArn: TopicArn
+      };
+      // Create promise and SNS service object
+      var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
+      // Handle promise's fulfilled/rejected states
+      publishTextPromise.then(
+        function(data) {
+          console.log("Message ${params.Message} send sent to the topic ${params.TopicArn}");
+          console.log("MessageID is " + data.MessageId);
+        }).catch(
+          function(err) {
+          console.error(err, err.stack);
+        });
       return handlerInput.responseBuilder
         .speak(sessionAttributes.speakOutput)
         // .addDelegateDirective('sendCommandIntent') // TODO: check to see if this works.
@@ -100,26 +118,6 @@ const YesIntentHandler = {
       && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.YesIntent';
   },
   handle(handlerInput){
-
-    const speechText = "Ok, I will send you a message";
-    //Publishing a messagr - Load the AWS SDK for Node.js
-      // Set region
-      // Create publish parameters
-      var params = {
-        Message: 'HI from the yesIntentHandler', /* required */
-        TopicArn: TopicArn
-      };
-      // Create promise and SNS service object
-      var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
-      // Handle promise's fulfilled/rejected states
-      publishTextPromise.then(
-        function(data) {
-          console.log("Message ${params.Message} send sent to the topic ${params.TopicArn}");
-          console.log("MessageID is " + data.MessageId);
-        }).catch(
-          function(err) {
-          console.error(err, err.stack);
-        });
     return handlerInput.responseBuilder
       .speak(speechText)
       .reprompt(speechText)
