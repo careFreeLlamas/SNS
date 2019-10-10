@@ -49,12 +49,13 @@ const getCommandHandler = {
     let speakOutput = '';
 
     if (command) {
-      sessionAttributes.speakOutput = command;
+      const secondPrompt = '. Would you like me to send that command?';
+      sessionAttributes.speakOutput = command + secondPrompt;
       handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
       const repromptText = "Would you like me to send that command?";
       var params = {
         Message: command, /* required */
-        TopicArn: 'arn:aws:sns:us-west-2:161803307416:gitNotifications'
+        TopicArn: TopicArn
       };
       // Create promise and SNS service object
       var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
@@ -83,6 +84,34 @@ const getCommandHandler = {
       .getResponse();
   },
 };
+
+const YesIntentHandler = {
+  canHandle(handlerInput){
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.YesIntent';
+  },
+  handle(handlerInput){
+    const speechText = "Ok, I will send you a message";
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .reprompt(speechText)
+      .getResponse();
+  }
+}
+
+const NoIntentHandler = {
+  canHandle(handlerInput){
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NoIntent';
+  },
+  handle(handlerInput){
+    const speechText = "Hope you enjoyed the service.";
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .reprompt(speechText)
+      .getResponse();
+  }
+}
 
 const HelpHandler = {
   canHandle(handlerInput) {
@@ -194,6 +223,8 @@ exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
     getCommandHandler,
+    YesIntentHandler,
+    NoIntentHandler,
     HelpHandler,
     RepeatHandler,
     ExitHandler,
