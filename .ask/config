@@ -29,7 +29,7 @@
             "codeUri": "lambda/custom",
             "functionName": "ask-custom-gitHow-default",
             "handler": "index.handler",
-            "revisionId": "34064e6b-c633-401c-8b04-c706292c8fe3",
+            "revisionId": "ccae1c80-2551-477d-ad0a-3fd1bf6e9f93",
             "runtime": "nodejs8.10"
           }
         ]

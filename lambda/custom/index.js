@@ -1,16 +1,13 @@
 /* eslint-disable  func-names */
 /* eslint-disable  no-console */
 var AWS = require('aws-sdk');
-// AWS.config.update({region: 'us-west-2'});
+
 const Alexa = require('ask-sdk-core');
 const commands = require('./gitCommands');
 const utterances = require('./utterances');
-
-
 const i18n = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
 
-const finalCommand = '';
 /* INTENT HANDLERS */
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -21,7 +18,6 @@ const LaunchRequestHandler = {
     const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
 
     const item = requestAttributes.t(getRandomItem(utterances.UTTERANCE_EN_US));
-
     const speakOutput = requestAttributes.t('WELCOME_MESSAGE', requestAttributes.t('SKILL_NAME'), item);
     const repromptOutput = requestAttributes.t('WELCOME_REPROMPT');
 
@@ -56,13 +52,9 @@ const getCommandHandler = {
       sessionAttributes.speakOutput = command;
       handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
       const repromptText = "Would you like me to send that command?";
-      const speechText = "Ok, I will send you a message";
-    //Publishing a messagr - Load the AWS SDK for Node.js
-      // Set region
-      // Create publish parameters
       var params = {
         Message: command, /* required */
-        TopicArn: process.env.TopicArn
+        TopicArn: 'arn:aws:sns:us-west-2:161803307416:gitNotifications'
       };
       // Create promise and SNS service object
       var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
@@ -77,10 +69,8 @@ const getCommandHandler = {
         });
       return handlerInput.responseBuilder
         .speak(sessionAttributes.speakOutput)
-        // .addDelegateDirective('sendCommandIntent') // TODO: check to see if this works.
         .reprompt(repromptText)
         .getResponse();
-        // .AskToSendCommand.handle(handlerInput);
     }
 
     // save outputs to attributes, so we can use it to repeat
@@ -93,51 +83,6 @@ const getCommandHandler = {
       .getResponse();
   },
 };
-
-
-
-// TODO: sendCommandHandler fn
-const AskToSendCommand = {
-  canHandle(handlerInput){
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'sendCommandIntent';
-  },
-  handle(handlerInput){
-    const speechText = "Would you like me to send this command?";
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .YesIntentHandler.handle(handlerInput)
-      .NoIntentHandler.handle(handlerInput)
-      .getResponse();
-  }
-}
-
-const YesIntentHandler = {
-  canHandle(handlerInput){
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.YesIntent';
-  },
-  handle(handlerInput){
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .reprompt(speechText)
-      .getResponse();
-  }
-}
-
-const NoIntentHandler = {
-  canHandle(handlerInput){
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NoIntent';
-  },
-  handle(handlerInput){
-    const speechText = "Hope you enjoyed the service.";
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .reprompt(speechText)
-      .getResponse();
-  }
-}
 
 const HelpHandler = {
   canHandle(handlerInput) {
@@ -249,9 +194,6 @@ exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
     getCommandHandler,
-    AskToSendCommand,
-    YesIntentHandler,
-    NoIntentHandler,
     HelpHandler,
     RepeatHandler,
     ExitHandler,
