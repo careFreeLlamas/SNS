@@ -62,7 +62,7 @@ const getCommandHandler = {
       // Create publish parameters
       var params = {
         Message: command, /* required */
-        TopicArn: TopicArn
+        TopicArn: process.env.TopicArn
       };
       // Create promise and SNS service object
       var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
