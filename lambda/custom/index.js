@@ -111,8 +111,8 @@ const YesIntentHandler = {
       // Set region
       // Create publish parameters
       var params = {
-        Message: finalCommand, /* required */
-        TopicArn: 'arn:aws:sns:us-west-2:161803307416:gitNotifications'
+        Message: 'hi from yes', /* required */
+        TopicArn: process.env.TopicArn
       };
       // Create promise and SNS service object
       var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
