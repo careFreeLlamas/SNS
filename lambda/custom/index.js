@@ -1,7 +1,6 @@
 /* eslint-disable  func-names */
 /* eslint-disable  no-console */
 var AWS = require('aws-sdk');
-// AWS.config.update({region: 'us-west-2'});
 const Alexa = require('ask-sdk-core');
 const commands = require('./gitCommands');
 const utterances = require('./utterances');
@@ -9,7 +8,6 @@ const utterances = require('./utterances');
 
 const i18n = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
-// const finalCommand = '';
 /* INTENT HANDLERS */
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -55,14 +53,12 @@ const getCommandHandler = {
       sessionAttributes.speakOutput = command;
       handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
       const repromptText = "Would you like me to send that command?";
-      saveOutput(sessionAttributes.speakOutput);
       console.log("ALEXA SAID: " + sessionAttributes.speakOutput);
       return handlerInput.responseBuilder
         .speak(sessionAttributes.speakOutput)
         // .addDelegateDirective('sendCommandIntent') // TODO: check to see if this works.
         .reprompt(repromptText)
         .getResponse();
-        // .AskToSendCommand.handle(handlerInput);
     }
 
     // save outputs to attributes, so we can use it to repeat
@@ -76,27 +72,6 @@ const getCommandHandler = {
   },
 };
 
-function saveOutput(command){
-  finalCommand = command;
-  return command;
-}
-
-// TODO: sendCommandHandler fn
-const AskToSendCommand = {
-  canHandle(handlerInput){
-    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'sendCommandIntent';
-  },
-  handle(handlerInput){
-    const speechText = "Would you like me to send this command?";
-    return handlerInput.responseBuilder
-      .speak(speechText)
-      .YesIntentHandler.handle(handlerInput)
-      .NoIntentHandler.handle(handlerInput)
-      .getResponse();
-  }
-}
-
 const YesIntentHandler = {
   canHandle(handlerInput){
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
@@ -105,14 +80,13 @@ const YesIntentHandler = {
   handle(handlerInput){
 
     const speechText = "Ok, I will send you a message";
-    const finalCommand = saveOutput();
-    console.log("FINAL COMMAND FROM YES HANDLER " + finalCommand);
+    // console.log("FINAL COMMAND FROM YES HANDLER " + finalCommand);
     //Publishing a messagr - Load the AWS SDK for Node.js
       // Set region
       // Create publish parameters
       var params = {
         Message: 'hi from yes', /* required */
-        TopicArn: process.env.TopicArn
+        TopicArn: TopicArn
       };
       // Create promise and SNS service object
       var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
@@ -256,7 +230,6 @@ exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
     getCommandHandler,
-    AskToSendCommand,
     YesIntentHandler,
     NoIntentHandler,
     HelpHandler,
