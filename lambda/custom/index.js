@@ -9,8 +9,7 @@ const utterances = require('./utterances');
 
 const i18n = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
-
-const finalCommand = '';
+// const finalCommand = '';
 /* INTENT HANDLERS */
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -56,7 +55,8 @@ const getCommandHandler = {
       sessionAttributes.speakOutput = command;
       handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
       const repromptText = "Would you like me to send that command?";
-      // finalCommand = command;
+      saveOutput(sessionAttributes.speakOutput);
+      console.log("ALEXA SAID: " + sessionAttributes.speakOutput);
       return handlerInput.responseBuilder
         .speak(sessionAttributes.speakOutput)
         // .addDelegateDirective('sendCommandIntent') // TODO: check to see if this works.
@@ -76,7 +76,10 @@ const getCommandHandler = {
   },
 };
 
-
+function saveOutput(command){
+  finalCommand = command;
+  return command;
+}
 
 // TODO: sendCommandHandler fn
 const AskToSendCommand = {
@@ -102,12 +105,14 @@ const YesIntentHandler = {
   handle(handlerInput){
 
     const speechText = "Ok, I will send you a message";
+    const finalCommand = saveOutput();
+    console.log("FINAL COMMAND FROM YES HANDLER " + finalCommand);
     //Publishing a messagr - Load the AWS SDK for Node.js
       // Set region
       // Create publish parameters
       var params = {
-        Message: 'HI from the yesIntentHandler', /* required */
-        TopicArn: TopicArn
+        Message: finalCommand, /* required */
+        TopicArn: 'arn:aws:sns:us-west-2:161803307416:gitNotifications'
       };
       // Create promise and SNS service object
       var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
