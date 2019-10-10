@@ -1,11 +1,16 @@
 /* eslint-disable  func-names */
 /* eslint-disable  no-console */
-
+var AWS = require('aws-sdk');
+// AWS.config.update({region: 'us-west-2'});
 const Alexa = require('ask-sdk-core');
-const recipes = require('./recipes');
+const commands = require('./gitCommands');
+const utterances = require('./utterances');
+
+
 const i18n = require('i18next');
 const sprintf = require('i18next-sprintf-postprocessor');
 
+const finalCommand = '';
 /* INTENT HANDLERS */
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
@@ -15,7 +20,7 @@ const LaunchRequestHandler = {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
     const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
 
-    const item = requestAttributes.t(getRandomItem(Object.keys(recipes.RECIPE_EN_US)));
+    const item = requestAttributes.t(getRandomItem(utterances.UTTERANCE_EN_US));
 
     const speakOutput = requestAttributes.t('WELCOME_MESSAGE', requestAttributes.t('SKILL_NAME'), item);
     const repromptOutput = requestAttributes.t('WELCOME_REPROMPT');
@@ -29,59 +34,112 @@ const LaunchRequestHandler = {
   },
 };
 
-const RecipeHandler = {
+const getCommandHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'RecipeIntent';
+      && handlerInput.requestEnvelope.request.intent.name === 'getCommandIntent';
   },
   handle(handlerInput) {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
     const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
 
-    const itemSlot = handlerInput.requestEnvelope.request.intent.slots.Item;
-    let itemName;
-    if (itemSlot && itemSlot.value) {
-      itemName = itemSlot.value.toLowerCase();
-    }
+    const actionSlot = handlerInput.requestEnvelope.request.intent.slots.action.resolutions.resolutionsPerAuthority[0].values[0].value.id;
+    const thingSlot = handlerInput.requestEnvelope.request.intent.slots.thing.resolutions.resolutionsPerAuthority[0].values[0].value.id;
 
-    const cardTitle = requestAttributes.t('DISPLAY_CARD_TITLE', requestAttributes.t('SKILL_NAME'), itemName);
-    const myRecipes = requestAttributes.t('RECIPES');
-    const recipe = myRecipes[itemName];
+    let commandReference = actionSlot.toLowerCase() + '_' + thingSlot.toLowerCase();
+
+    const myCommands = requestAttributes.t('COMMANDS');
+    const command = myCommands[commandReference];
     let speakOutput = '';
 
-    if (recipe) {
-      sessionAttributes.speakOutput = recipe;
-      // uncomment the _2_ reprompt lines if you want to repeat the info
-      // and prompt for a subsequent action
-      // sessionAttributes.repromptSpeech = requestAttributes.t('RECIPE_REPEAT_MESSAGE');
+    if (command) {
+      sessionAttributes.speakOutput = command;
       handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
-
+      const repromptText = "Would you like me to send that command?";
+      // finalCommand = command;
       return handlerInput.responseBuilder
         .speak(sessionAttributes.speakOutput)
-        // .reprompt(sessionAttributes.repromptSpeech)
-        .withSimpleCard(cardTitle, recipe)
+        // .addDelegateDirective('sendCommandIntent') // TODO: check to see if this works.
+        .reprompt(repromptText)
         .getResponse();
+        // .AskToSendCommand.handle(handlerInput);
     }
-    const repromptSpeech = requestAttributes.t('RECIPE_NOT_FOUND_REPROMPT');
-    if (itemName) {
-      speakOutput += requestAttributes.t('RECIPE_NOT_FOUND_WITH_ITEM_NAME', itemName);
-    } else {
-      speakOutput += requestAttributes.t('RECIPE_NOT_FOUND_WITHOUT_ITEM_NAME');
-    }
-    speakOutput += repromptSpeech;
 
     // save outputs to attributes, so we can use it to repeat
     sessionAttributes.speakOutput = speakOutput;
-    sessionAttributes.repromptSpeech = repromptSpeech;
 
     handlerInput.attributesManager.setSessionAttributes(sessionAttributes);
 
     return handlerInput.responseBuilder
       .speak(sessionAttributes.speakOutput)
-      .reprompt(sessionAttributes.repromptSpeech)
       .getResponse();
   },
 };
+
+
+
+// TODO: sendCommandHandler fn
+const AskToSendCommand = {
+  canHandle(handlerInput){
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'sendCommandIntent';
+  },
+  handle(handlerInput){
+    const speechText = "Would you like me to send this command?";
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .YesIntentHandler.handle(handlerInput)
+      .NoIntentHandler.handle(handlerInput)
+      .getResponse();
+  }
+}
+
+const YesIntentHandler = {
+  canHandle(handlerInput){
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.YesIntent';
+  },
+  handle(handlerInput){
+
+    const speechText = "Ok, I will send you a message";
+    //Publishing a messagr - Load the AWS SDK for Node.js
+      // Set region
+      // Create publish parameters
+      var params = {
+        Message: 'HI from the yesIntentHandler', /* required */
+        TopicArn: TopicArn
+      };
+      // Create promise and SNS service object
+      var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(params).promise();
+      // Handle promise's fulfilled/rejected states
+      publishTextPromise.then(
+        function(data) {
+          console.log("Message ${params.Message} send sent to the topic ${params.TopicArn}");
+          console.log("MessageID is " + data.MessageId);
+        }).catch(
+          function(err) {
+          console.error(err, err.stack);
+        });
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .reprompt(speechText)
+      .getResponse();
+  }
+}
+
+const NoIntentHandler = {
+  canHandle(handlerInput){
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.NoIntent';
+  },
+  handle(handlerInput){
+    const speechText = "Hope you enjoyed the service.";
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .reprompt(speechText)
+      .getResponse();
+  }
+}
 
 const HelpHandler = {
   canHandle(handlerInput) {
@@ -92,7 +150,7 @@ const HelpHandler = {
     const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
     const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
 
-    const item = requestAttributes.t(getRandomItem(Object.keys(recipes.RECIPE_EN_US)));
+    const item = requestAttributes.t(getRandomItem(Object.keys(commands.COMMAND_EN_US)));
 
     sessionAttributes.speakOutput = requestAttributes.t('HELP_MESSAGE', item);
     sessionAttributes.repromptSpeech = requestAttributes.t('HELP_REPROMPT', item);
@@ -154,8 +212,8 @@ const ErrorHandler = {
     console.log(`Error handled: ${error.message}`);
 
     return handlerInput.responseBuilder
-      .speak('Sorry, I can\'t understand the command. Please say again.')
-      .reprompt('Sorry, I can\'t understand the command. Please say again.')
+      .speak('Sorry, I can\'t understand the command. Please say it again.')
+      .reprompt('Sorry, I can\'t understand the command. Please say it again.')
       .getResponse();
   },
 };
@@ -192,7 +250,10 @@ const skillBuilder = Alexa.SkillBuilders.custom();
 exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
-    RecipeHandler,
+    getCommandHandler,
+    AskToSendCommand,
+    YesIntentHandler,
+    NoIntentHandler,
     HelpHandler,
     RepeatHandler,
     ExitHandler,
@@ -203,51 +264,28 @@ exports.handler = skillBuilder
   .lambda();
 
 // langauge strings for localization
-// TODO: The items below this comment need your attention
 
 const languageStrings = {
   'en': {
     translation: {
-      RECIPES: recipes.RECIPE_EN_US,
-      SKILL_NAME: 'Minecraft Helper',
-      WELCOME_MESSAGE: 'Welcome to %s. You can ask a question like, what\'s the recipe for a %s? ... Now, what can I help you with?',
+      UTTERANCES: utterances.UTTERANCE_EN_US,
+      COMMANDS: commands.COMMAND_EN_US,
+      SKILL_NAME: 'gitHelp',
+      WELCOME_MESSAGE: 'Welcome to %s. You can ask a question like, %s ... Now, what can I help you with?',
       WELCOME_REPROMPT: 'For instructions on what you can say, please say help me.',
-      DISPLAY_CARD_TITLE: '%s  - Recipe for %s.',
-      HELP_MESSAGE: 'You can ask questions such as, what\'s the recipe for a %s, or, you can say exit...Now, what can I help you with?',
-      HELP_REPROMPT: 'You can say things like, what\'s the recipe for a %s, or you can say exit...Now, what can I help you with?',
+      HELP_MESSAGE: 'You can ask questions such as, %s, or, you can say exit...Now, what can I help you with?',
+      HELP_REPROMPT: 'You can say things like, %s, or you can say exit...Now, what can I help you with?',
       STOP_MESSAGE: 'Goodbye!',
-      RECIPE_REPEAT_MESSAGE: 'Try saying repeat.',
-      RECIPE_NOT_FOUND_WITH_ITEM_NAME: 'I\'m sorry, I currently do not know the recipe for %s. ',
-      RECIPE_NOT_FOUND_WITHOUT_ITEM_NAME: 'I\'m sorry, I currently do not know that recipe. ',
-      RECIPE_NOT_FOUND_REPROMPT: 'What else can I help with?',
+      REPEAT_MESSAGE: 'Try saying repeat.',
     },
   },
   'en-US': {
     translation: {
-      RECIPES: recipes.RECIPE_EN_US,
-      SKILL_NAME: 'American Minecraft Helper',
+      UTTERANCES: utterances.UTTERANCE_EN_US,
+      COMMANDS: commands.COMMAND_EN_US,
+      SKILL_NAME: 'gitHelp',
     },
-  },
-  'en-GB': {
-    translation: {
-      RECIPES: recipes.RECIPE_EN_GB,
-      SKILL_NAME: 'British Minecraft Helper',
-    },
-  },
-  'de': {
-    translation: {
-      RECIPES: recipes.RECIPE_DE_DE,
-      SKILL_NAME: 'Assistent für Minecraft in Deutsch',
-      WELCOME_MESSAGE: 'Willkommen bei %s. Du kannst beispielsweise die Frage stellen: Welche Rezepte gibt es für eine %s? ... Nun, womit kann ich dir helfen?',
-      WELCOME_REPROMPT: 'Wenn du wissen möchtest, was du sagen kannst, sag einfach „Hilf mir“.',
-      DISPLAY_CARD_TITLE: '%s - Rezept für %s.',
-      HELP_MESSAGE: 'Du kannst beispielsweise Fragen stellen wie „Wie geht das Rezept für eine %s“ oder du kannst „Beenden“ sagen ... Wie kann ich dir helfen?',
-      HELP_REPROMPT: 'Du kannst beispielsweise Sachen sagen wie „Wie geht das Rezept für eine %s“ oder du kannst „Beenden“ sagen ... Wie kann ich dir helfen?',
-      STOP_MESSAGE: 'Auf Wiedersehen!',
-      RECIPE_REPEAT_MESSAGE: 'Sage einfach „Wiederholen“.',
-      RECIPE_NOT_FOUND_WITH_ITEM_NAME: 'Tut mir leid, ich kenne derzeit das Rezept für %s nicht. ',
-      RECIPE_NOT_FOUND_WITHOUT_ITEM_NAME: 'Tut mir leid, ich kenne derzeit dieses Rezept nicht. ',
-      RECIPE_NOT_FOUND_REPROMPT: 'Womit kann ich dir sonst helfen?',
-    },
-  },
+  }
 };
+
+

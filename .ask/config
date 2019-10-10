@@ -1,9 +1,39 @@
 {
   "deploy_settings": {
     "default": {
-      "skill_id": "",
+      "skill_id": "amzn1.ask.skill.9f037991-eb33-433f-9f4d-331a37e9f88f",
       "was_cloned": false,
-      "merge": {}
+      "merge": {},
+      "resources": {
+        "manifest": {
+          "eTag": "03122e1bfbf7e5166eac926800e600c5"
+        },
+        "interactionModel": {
+          "de-DE": {
+            "eTag": "e492bb3b6fd2f96aed7e4d8977059d65"
+          },
+          "en-US": {
+            "eTag": "bc95fe53737419a1cb4eac2b71aac2b8"
+          },
+          "en-GB": {
+            "eTag": "5203011c35a5947ce7f1dbf685e5a6c3"
+          }
+        },
+        "lambda": [
+          {
+            "alexaUsage": [
+              "custom/default"
+            ],
+            "arn": "arn:aws:lambda:us-west-2:161803307416:function:ask-custom-gitHow-default",
+            "awsRegion": "us-west-2",
+            "codeUri": "lambda/custom",
+            "functionName": "ask-custom-gitHow-default",
+            "handler": "index.handler",
+            "revisionId": "340ff199-be25-4006-a34b-934aeeb08a49",
+            "runtime": "nodejs8.10"
+          }
+        ]
+      }
     }
   }
 }
