@@ -1,34 +1,75 @@
-# Build An Alexa How-To Skill
-<img src="https://m.media-amazon.com/images/G/01/mobile-apps/dex/alexa/alexa-skills-kit/tutorials/quiz-game/header._TTH_.png" />
+# Alexa Gits Me
 
-This tutorial will walk first-time Alexa skills developers through all the required steps involved in creating a skill using a template called ‘Minecraft Helper’. Ask how to craft an item in the game Minecraft, and this skill will give you instructions.
+This is an Alexa Skill that will answer user git questions and, if you want, send you a text with the command.
+This is not intended to be Git in its entirety, but an easy reference to the main commands.
 
-## Skill Architecture
-Each skill consists of two basic parts, a front end and a back end.
-The front end is the voice interface, or VUI.
-The voice interface is configured through the voice interaction model.
-The back end is where the logic of your skill resides.
+Invoke the skill by saying "git how".
 
-## Three Options for Skill Setup
-There are a number of different ways for you to setup your skill, depending on your experience and what tools you have available.
+## Software Requirements
 
- * If this is your first skill, choose the [Alexa-Hosted backend instructions](./instructions/setup-vui-alexa-hosted.md) to get started quickly.
- * If you want to manage the backend resources in your own AWS account, you can follow the [AWS-Hosted instructions](./instructions/setup-vui-aws-hosted.md).
- * Developers with the ASK Command Line Interface configured may follow the [ASK CLI instructions](./instructions/cli.md).
+[Software Requirements](Requirement.md)
 
----
+## Project Management Board
 
-## Additional Resources
+* [Trello](https://trello.com/b/KSdLCHPI/githow)
+* [Google Spreadsheets](https://docs.google.com/spreadsheets/d/1U_7U3_fGZcbkNivKYB3JFaBJ5h62fV1uw4VmhI6rFM4/edit?usp=sharing)
 
-### Community
-* [Amazon Developer Forums](https://forums.developer.amazon.com/spaces/165/index.html) - Join the conversation!
-* [Hackster.io](https://www.hackster.io/amazon-alexa) - See what others are building with Alexa.
+## User Stories
 
-### Tutorials & Guides
-* [Voice Design Guide](https://developer.amazon.com/designing-for-voice/) - A great resource for learning conversational and voice user interface design.
-* [Codecademy: Learn Alexa](https://www.codecademy.com/learn/learn-alexa) - Learn how to build an Alexa Skill from within your browser with this beginner friendly tutorial on Codecademy!
+- _As a user_
 
-### Documentation
-* [Alexa Skills Kit SDK for Node.js](https://alexa.design/node-sdk-docs)
-* [Alexa Skills Kit Documentation](https://developer.amazon.com/docs/ask-overviews/build-skills-with-the-alexa-skills-kit.html)
+  - I want to ask what is the command for a certain git action.
+  - I want to hear what is the command for a certain git action.
+  - I want a message sent to my phone so that I can see what it looks like, after I ask Alexa.
 
+- _As a developer_
+  - I want to create an Alexa skill that will answer a git question.
+  - I want to give the user the correct git command to their git question.
+  - I want to utilize Lambda functions as a way to adhere to SOLID principles.
+  - I want to utilize an SNS Queue system to send a message to the user with the git command.
+
+## Wireframes
+  
+[Decision Tree](https://app.moqups.com/uluAsPw28y/view/page/aa9df7b72)
+* White board image
+![White board image](assets/whiteboard_image.jpg)
+
+## Starting Project using Alexa Skills Kit Command Line Interface(ASK CLI)
+* [Sign up for Alexa developer console](https://developer.amazon.com/) 
+* Install Node.js and npm. ASK CLI needs Node.js version 6 or higher
+* Setup AWS IAM user with required permissions: AWSLambdaExecute, AmazonSNSFullAccess, CloudWatchLogsFullAcess
+* Install ASK CLI for mac: ```npm install -g ask-cli```, for window: ``` npm install -g --production windows-build-tools```
+* The first time you use ASK CLI, you must use the ```ask init``` command to initialize ASK CLI 
+* Use ```ask new``` to create new skill project
+* Use ```ask deploy``` in the skill project directory to deploy it into alexa developer console
+* Test the skill in console 
+* To push the local changes to the remote version, use ```ask deploy``` or ```ask deploy --force``` 
+
+## Output
+![Final Output of Working Application](assets/finalWorkingStage.png)
+
+## Resources
+[BraveLemming](https://github.com/bravelemming)
+
+[Tutorial](https://developer.amazon.com/blogs/alexa/post/a9ef18b2-ef68-44d4-86eb-dbdb293853bb/alexa-skill-recipe-making-http-requests-to-get-data-from-an-external-api) on how to make an Alexa Skill
+
+[Free Code Camp](https://www.youtube.com/watch?v=QkbXjknPoXc)
+
+[Github Repo](https://github.com/alexa/skill-sample-nodejs-fact) of how to build an Alexa Skill
+
+[Medium.com](https://medium.com/@nils.backe/how-to-use-the-customer-profile-api-in-amazon-alexa-skills-671773c672f6) How to use the customer profile
+
+[Dabble Lab](https://www.youtube.com/watch?v=f0JhqODTDY8) Handling Yes and No responses in Alexa Skills
+
+[Publishing Messages](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/sns-examples-publishing-messages.html) How to publish messages 
+
+
+## Team Members
+
+[sapanapoudel](https://github.com/sapanapoudel)
+
+[Nhuuu](https://github.com/Nhuuu)
+
+[rttgg](https://github.com/rttgg)
+
+[BomiBear](https://github.com/bomibear)
