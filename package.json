@@ -18,7 +18,7 @@
   "homepage": "https://github.com/alexa/skill-sample-nodejs-howto#readme",
   "dependencies": {
     "alexa-sdk": "^1.0.25",
-    "aws-sdk": "^2.546.0",
+    "aws-sdk": "^2.814.0",
     "dotenv": "^8.1.0",
     "es6-promisify": "^6.0.2"
   }
